@@ -104,6 +104,70 @@ class CustomLookScreenshotTest {
         rule.onNodeWithTag(FIRST_POSTER).requestFocus()
         save("04_fileiras_foco_ranking")
     }
+
+    @Test
+    fun categorias_filmes() {
+        rule.setContent { Screen { CategoriesMock(sheet = false) } }
+        save("05_filmes_categorias")
+    }
+
+    @Test
+    fun categorias_tvAoVivo() {
+        rule.setContent { Screen { CategoriesMock(sheet = true) } }
+        save("06_tv_ao_vivo_categorias")
+    }
+}
+
+private val sampleCategories = listOf(
+    "Todos" to 1240, "Favoritos" to 18, "Lançamentos" to 96, "Ação" to 214, "Comédia" to 187,
+    "Drama" to 302, "Ficção científica" to 88, "Suspense" to 141, "Terror" to 73, "Animação" to 120,
+)
+
+/** The real category list (LiveCategories — Live TV's sheet, the Movies / Series column) beside a poster grid. */
+@Composable
+private fun CategoriesMock(sheet: Boolean) {
+    val entries = sampleCategories.mapIndexed { i, (label, count) ->
+        tv.own.owntv.features.live.LiveCategoryEntry(
+            item = tv.own.owntv.features.live.LiveRailItem(
+                key = if (i == 0) tv.own.owntv.core.live.LiveKey.All else tv.own.owntv.core.live.LiveKey.Folder(i.toLong()),
+                title = label,
+            ),
+            label = label,
+            name = null,
+            icon = when (i) { 0 -> OwnTVIcon.LIST_GRID; 1 -> OwnTVIcon.FAVORITE; else -> null },
+            count = count,
+            mark = null,
+        )
+    }
+    val list = androidx.compose.foundation.lazy.rememberLazyListState()
+    Row(Modifier.fillMaxSize().padding(start = 140.mpx, top = 40.mpx)) {
+        tv.own.owntv.features.live.LiveCategories(
+            entries = entries,
+            selectedIndex = 3,
+            groupsHeading = "GRUPOS",
+            sheet = sheet,
+            listState = list,
+            onSelect = {},
+            onLongSelect = {},
+            onNavigateRight = {},
+            focusRowIndex = 5,
+            sheetHint = if (sheet) "TV ao vivo" else "Filmes",
+            modifier = Modifier.width(450.mpx).fillMaxSize(),
+        )
+        Spacer(Modifier.width(40.mpx))
+        Column {
+            tv.own.owntv.features.shell.components.VodHeader("Filmes", "Ação", "214 títulos", showChevron = true)
+            Spacer(Modifier.height(24.mpx))
+            for (r in 0 until 2) {
+                Row(horizontalArrangement = Arrangement.spacedBy(20.mpx)) {
+                    posters.drop(r).take(6).forEach { (title, c) ->
+                        StagePoster(title, {}, 196.mpx, 294.mpx) { Box(art(c.first, c.second)) }
+                    }
+                }
+                Spacer(Modifier.height(24.mpx))
+            }
+        }
+    }
 }
 
 private const val PLAY = "play"
