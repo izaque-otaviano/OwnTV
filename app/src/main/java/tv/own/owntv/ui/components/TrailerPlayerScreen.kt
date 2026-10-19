@@ -82,7 +82,7 @@ import androidx.compose.runtime.setValue
 @Composable
 fun TrailerPlayerScreen(videoKey: String, title: String? = null, onExit: () -> Unit) =
     // Video keeps its dark chrome in every theme.
-    androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.theme.LocalStagePalette provides tv.own.owntv.ui.theme.StagePalette.Dark) {
+    androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.theme.LocalStagePalette provides tv.own.owntv.ui.theme.CustomPalettes.Dark) {
         TrailerPlayerContent(videoKey, title, onExit)
     }
 

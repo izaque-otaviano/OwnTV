@@ -40,7 +40,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.foundation.focusGroup
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -58,6 +57,7 @@ import tv.own.owntv.ui.theme.StageColors
 import tv.own.owntv.ui.theme.LocalStagePalette
 import tv.own.owntv.ui.theme.StagePalette
 import tv.own.owntv.ui.theme.StageRadii
+import tv.own.owntv.ui.theme.CustomFocus
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.ownTvTween
 import tv.own.owntv.ui.theme.stageAccent
@@ -82,57 +82,25 @@ fun Modifier.stageFocusLook(style: StageFocus, radius: Dp): Modifier =
     stageFocusDecor(style, radius, stageAccent, LocalStagePalette.current)
 
 private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAccent, palette: StagePalette) = drawBehind {
+    // Personalização: tvOS-style focus. No coloured glow or ring: rows take a soft fill, controls the
+    // solid focus capsule, posters only a deep shadow under their lift.
     val r = radius.toPx()
     val px = 1.mpx.toPx()
-    if (palette.isLight) {
-        // `.mine.light`: the accent is the ring, set off from the item by a page-coloured gap.
-        when (style) {
-            StageFocus.FX -> {
-                drawBoxShadow(a.accent.copy(alpha = 0.18f), 30 * px, r, dy = 10 * px)
-                drawRoundRect(
-                    Brush.horizontalGradient(listOf(a.accent.copy(alpha = 0.18f), a.accent.copy(alpha = 0.06f))),
-                    cornerRadius = CornerRadius(r),
-                )
-                drawInnerRing(a.accent, 2.5f * px, r)
-            }
-            StageFocus.FILLED, StageFocus.PRIMARY -> {
-                drawBoxShadow(a.accent.copy(alpha = 0.3f), 30 * px, r, dy = 12 * px)
-                drawRoundRect(a.accent, cornerRadius = CornerRadius(r))
-                drawOuterRing(palette.page, 2.5f * px, r)
-                drawOuterRing(a.accent, 2.5f * px, r, inset = 2.5f * px)
-            }
-            StageFocus.POSTER -> {
-                drawBoxShadow(a.accent.copy(alpha = 0.3f), 44 * px, r, dy = 20 * px)
-                drawOuterRing(palette.page, 3 * px, r)
-                drawOuterRing(a.accent, 4 * px, r, inset = 3 * px)
-            }
-        }
-        return@drawBehind
-    }
     when (style) {
         StageFocus.FX -> {
-            drawBoxShadow(a.accent.copy(alpha = 0.28f), 44 * px, r)
-            // A row-sized sweep: small enough to stay a brush (see GradientTextures).
-            drawRoundRect(
-                Brush.horizontalGradient(listOf(a.accent.copy(alpha = 0.34f), a.accent.copy(alpha = 0.14f))),
-                cornerRadius = CornerRadius(r),
-            )
-            drawInnerRing(a.focus, 2 * px, r)
+            drawBoxShadow(palette.shadow(0.30f), 30 * px, r, dy = 10 * px)
+            drawRoundRect(a.accent.copy(alpha = if (palette.isLight) 0.08f else 0.16f), cornerRadius = CornerRadius(r))
         }
         StageFocus.FILLED -> {
-            drawBoxShadow(a.accent.copy(alpha = 0.35f), 30 * px, r, dy = 10 * px)
+            drawBoxShadow(palette.shadow(0.35f), 30 * px, r, dy = 10 * px)
             drawRoundRect(a.accent, cornerRadius = CornerRadius(r))
-            drawOuterRing(a.focus, 2 * px, r)
         }
         StageFocus.PRIMARY -> {
-            drawBoxShadow(a.accent.copy(alpha = 0.45f), 40 * px, r, dy = 14 * px)
+            drawBoxShadow(palette.shadow(0.45f), 40 * px, r, dy = 16 * px)
             drawRoundRect(a.accent, cornerRadius = CornerRadius(r))
-            drawOuterRing(a.focus, 3 * px, r)
         }
         StageFocus.POSTER -> {
-            drawBoxShadow(a.accent.copy(alpha = 0.35f), 60 * px, r, dy = 24 * px)
-            drawOuterRing(a.accent.copy(alpha = 0.35f), 4 * px, r, inset = 3 * px)
-            drawOuterRing(a.focus, 3 * px, r)
+            drawBoxShadow(palette.shadow(0.60f), 50 * px, r, dy = 26 * px)
         }
     }
 }
@@ -175,8 +143,8 @@ fun StageSurface(
 private fun Modifier.stageLift(focused: Boolean, style: StageFocus, episode: Boolean = false): Modifier {
     val lift = when {
         episode -> 1.06f
-        style == StageFocus.PRIMARY -> 1.04f
-        style == StageFocus.POSTER -> 1.08f
+        style == StageFocus.PRIMARY -> CustomFocus.ButtonLift
+        style == StageFocus.POSTER -> CustomFocus.PosterLift
         else -> 1f
     }
     val scale by animateFloatAsState(if (focused) lift else 1f, ownTvTween(170), label = "stageLift")

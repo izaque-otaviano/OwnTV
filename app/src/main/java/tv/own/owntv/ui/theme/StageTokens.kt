@@ -215,9 +215,10 @@ fun stageShadow(alpha: Float): Color = LocalStagePalette.current.shadow(alpha)
 object StageRadii {
     val Sheet = 32.mpx
     val Menu = 28.mpx
-    val Button = 22.mpx
+    // Personalização: buttons and pills are full capsules (half their 64 / 50 height).
+    val Button = 32.mpx
     val Row = 20.mpx
-    val Pill = 17.mpx
+    val Pill = 25.mpx
     val Poster = 16.mpx
     val SheetItem = 16.mpx
     val Tool = 15.mpx
@@ -232,9 +233,11 @@ data class StageAccent(val accent: Color, val onAccent: Color, val focus: Color)
 val stageAccent: StageAccent
     @Composable
     @ReadOnlyComposable
-    // In light the pale focus colour vanishes on white, so every ring is the accent itself.
-    get() = OwnTVTheme.colors.let {
-        StageAccent(it.primary, it.onPrimary, if (LocalStagePalette.current.isLight) it.primary else it.focusBorder)
+    // Personalização: focus is a neutral capsule (CustomFocus), not the user's accent.
+    get() = if (LocalStagePalette.current.isLight) {
+        StageAccent(CustomFocus.LightFill, CustomFocus.LightOn, CustomFocus.LightFill)
+    } else {
+        StageAccent(CustomFocus.DarkFill, CustomFocus.DarkOn, CustomFocus.DarkFill)
     }
 
 /**
