@@ -150,6 +150,8 @@ android {
         // JVM unit tests hit android.util.Log / SystemClock in the code under test (StalkerAuthManager
         // etc.); return defaults (no-op log, 0 clock) instead of "not mocked" crashes.
         unitTests.isReturnDefaultValues = true
+        // Personalização: the screenshot test draws real fonts and strings.
+        unitTests.isIncludeAndroidResources = true
     }
 
     buildTypes {
@@ -443,6 +445,17 @@ dependencies {
     // every JSONObject call into a silent null/0. Backup/restore is all JSON, so the unit tests need
     // the real implementation to mean anything.
     testImplementation(libs.org.json)
+    // Personalização: CustomLookScreenshotTest (runs only with -Powntv.screenshots=true).
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+// Personalização: the screenshot test renders with Robolectric and is slow, so ordinary test runs
+// leave it out; `-Powntv.screenshots=true` runs it (see .github/workflows/screenshots.yml).
+val screenshotsEnabled = providers.gradleProperty("owntv.screenshots").orNull == "true"
+tasks.withType<Test>().configureEach {
+    if (!screenshotsEnabled) exclude("**/screenshots/**")
 }

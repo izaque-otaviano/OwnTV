@@ -69,6 +69,8 @@ juniversalchardet = "2.5.0"
 
 # --- Test ---
 junit = "4.13.2"
+# Personalização: screenshot test only (CustomLookScreenshotTest).
+robolectric = "4.15.1"
 # Test-only: the real org.json, so JVM unit tests can exercise code built on JSONObject/JSONArray
 # (the android.jar stub returns defaults for every method under isReturnDefaultValues).
 orgJson = "20260814"
@@ -165,6 +167,8 @@ koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compos
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
