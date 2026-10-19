@@ -111,7 +111,11 @@ private const val FIRST_STILL = "still0"
 private const val FIRST_POSTER = "poster0"
 
 @Composable
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 private fun Screen(content: @Composable () -> Unit) {
+    // A TV is driven by D-pad: in the test's default touch mode clickables never take focus.
+    val inputMode = androidx.compose.ui.platform.LocalInputModeManager.current
+    androidx.compose.runtime.SideEffect { inputMode.requestInputMode(androidx.compose.ui.input.InputMode.Keyboard) }
     OwnTVTheme(themeMode = ThemeMode.DARK, accent = AccentColor.TEAL, systemInDarkTheme = true) {
         Box(Modifier.fillMaxSize().stageBackground(Color.White)) { content() }
     }
