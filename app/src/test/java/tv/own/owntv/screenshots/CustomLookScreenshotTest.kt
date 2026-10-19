@@ -51,7 +51,7 @@ import tv.own.owntv.ui.stage.StageStill
 import tv.own.owntv.ui.stage.stageBackground
 import tv.own.owntv.ui.theme.OwnTVTheme
 import tv.own.owntv.ui.theme.StageColors
-import tv.own.owntv.ui.theme.ThemeMode
+import tv.own.owntv.core.theme.ThemeMode
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageText
 import java.io.File
