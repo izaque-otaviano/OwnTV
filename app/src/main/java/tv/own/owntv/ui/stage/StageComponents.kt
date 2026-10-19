@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -765,6 +766,10 @@ fun StagePoster(
     progress: Float? = null,
     /** A finished title: the `.ep` ✓ badge in the top corner instead of a bar. */
     watched: Boolean = false,
+    /** Personalização: a chart position drawn large in the top corner ("1", "2"…). */
+    rank: Int? = null,
+    /** Personalização: the title drawn on the artwork's bottom instead of under it. */
+    titleOnArt: Boolean = false,
     artwork: @Composable BoxScope.() -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -795,7 +800,32 @@ fun StagePoster(
                 .clip(RoundedCornerShape(r)),
         ) {
             artwork()
-            if (rating != null) StageRatingChip(rating, Modifier.padding(8.mpx), small = compact)
+            if (rank != null) {
+                Text(
+                    rank.toString(),
+                    style = stageText(if (compact) 52 else 64, 800).copy(
+                        shadow = androidx.compose.ui.graphics.Shadow(Color.Black.copy(alpha = 0.5f), blurRadius = 12f),
+                    ),
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.TopStart).padding(start = 12.mpx),
+                )
+            }
+            if (titleOnArt) {
+                Text(
+                    title,
+                    style = stageText(if (compact) 15 else 17, 700),
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))))
+                        .padding(start = 10.mpx, end = 10.mpx, top = 40.mpx, bottom = 12.mpx),
+                )
+            }
+            if (rating != null && rank == null) StageRatingChip(rating, Modifier.padding(8.mpx), small = compact)
             if (watched) {
                 Box(
                     Modifier.align(Alignment.TopEnd).padding(8.mpx).size(if (compact) 26.mpx else 30.mpx)
@@ -811,14 +841,16 @@ fun StagePoster(
                 }
             }
         }
-        Spacer(Modifier.height(12.mpx))
-        Text(
-            title,
-            style = if (line != null) stageText(18, 700) else stageText(if (compact) 15.5f else 17f, if (focused) 700 else 600),
-            color = if (focused || line != null) stageTone(Color.White, StageColors.Text) else StageColors.Muted,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        if (!titleOnArt) {
+            Spacer(Modifier.height(12.mpx))
+            Text(
+                title,
+                style = if (line != null) stageText(18, 700) else stageText(if (compact) 15.5f else 17f, if (focused) 700 else 600),
+                color = if (focused || line != null) stageTone(Color.White, StageColors.Text) else StageColors.Muted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
         if (line != null) Text(line, style = stageText(15, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
@@ -869,20 +901,35 @@ fun StageStill(
                 .clip(RoundedCornerShape(r)),
         ) {
             artwork()
+            // Personalização: the title and "▶ ━━ S1 · E2 · 31 min" sit on the still, over a bottom fade.
+            StillCaption(title, line, progress, titleSize, lineSize, Modifier.align(Alignment.BottomStart))
+        }
+    }
+}
+
+/** The caption a 16:9 card carries on its picture: the title, then ▶, a short progress bar and [line]. */
+@Composable
+fun StillCaption(title: String?, line: String?, progress: Float?, titleSize: Int, lineSize: Int, modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.72f))))
+            .padding(start = 16.mpx, end = 16.mpx, top = 34.mpx, bottom = 12.mpx),
+    ) {
+        if (title != null) {
+            Text(title, style = stageText(titleSize, 700), color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(4.mpx))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
+            StageIcon(OwnTVIcon.PLAY, Color.White, (lineSize - 2).mpx, filled = true)
             if (progress != null && progress > 0f) {
-                Box(
-                    Modifier.align(Alignment.BottomStart).fillMaxWidth().height(6.mpx)
-                        .background(Color.Black.copy(alpha = 0.5f)),
-                ) {
-                    Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(6.mpx).background(accent.accent))
+                Box(Modifier.size(40.mpx, 5.mpx).clip(RoundedCornerShape(3.mpx)).background(Color.White.copy(alpha = 0.35f))) {
+                    Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(5.mpx).background(Color.White))
                 }
             }
-        }
-        Spacer(Modifier.height(12.mpx))
-        Text(title, style = stageText(titleSize, 700), color = stageTone(Color(0xFFE6EEEA), StageColors.Text), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        if (line != null) {
-            Spacer(Modifier.height((if (lineSize >= 16) 4 else 3).mpx))
-            Text(line, style = stageText(lineSize, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (line != null) {
+                Text(line, style = stageText(lineSize, 600), color = Color.White.copy(alpha = 0.92f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }

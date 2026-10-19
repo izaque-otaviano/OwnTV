@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -839,7 +840,7 @@ private fun TrendingHero(
                     url = extras.logoUrl,
                     contentDescription = snapshot.localizedTitle,
                     onFailed = { logoFailed = true },
-                    modifier = Modifier.fillMaxWidth().height(170.mpx),
+                    modifier = Modifier.fillMaxWidth().height(140.mpx),
                 )
             } else {
                 Text(
@@ -859,11 +860,11 @@ private fun TrendingHero(
                 val metaStyle = stageText(21, 600)
                 val metaColor = stageTone(Color(0xFFD3DCD8), StageColors.Body)
                 meta.forEachIndexed { i, part ->
-                    if (i > 0) Text("•", style = metaStyle, color = metaColor.copy(alpha = 0.4f))
+                    if (i > 0) Text("·", style = metaStyle, color = metaColor.copy(alpha = 0.6f))
                     Text(part, style = metaStyle, color = metaColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 snapshot.rating?.let { rating ->
-                    if (meta.isNotEmpty()) Text("•", style = metaStyle, color = metaColor.copy(alpha = 0.4f))
+                    if (meta.isNotEmpty()) Text("·", style = metaStyle, color = metaColor.copy(alpha = 0.6f))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
                         Text("★", style = metaStyle, color = StageColors.RatingStar)
                         Text(ratingText(rating), style = metaStyle, color = metaColor)
@@ -899,19 +900,21 @@ private fun TrendingHero(
                         iconFilled = isMovie,
                         modifier = Modifier.focusRequester(primaryFocusRequester).tracked(primaryFocusRequester, track),
                     )
+                    // Personalização: one labelled capsule (Play), every other action a round button.
                     if (!snapshot.trailerKey.isNullOrBlank()) {
                         StageButton(
-                            text = stringResource(R.string.home_trending_trailer),
+                            text = null,
                             onClick = { onTrailer(item) },
                             icon = OwnTVIcon.PLAY_CIRCLE,
+                            round = true,
                             modifier = Modifier.focusRequester(trailerFocusRequester).tracked(trailerFocusRequester, track),
                         )
                     }
                     StageButton(
-                        text = stringResource(R.string.home_trending_all_versions),
+                        text = null,
                         onClick = { onAllVersions(item) },
                         icon = OwnTVIcon.LAYERS,
-                        trailing = extras.versions.takeIf { it > 1 }?.toString(),
+                        round = true,
                         modifier = Modifier.focusRequester(versionsFocusRequester).tracked(versionsFocusRequester, track),
                     )
                 }
@@ -931,15 +934,15 @@ private fun TrendingHero(
                     modifier = Modifier.tracked(track = track),
                 )
             }
-            Spacer(Modifier.height(32.mpx))
-            TrendingPager(
-                count = items.size,
-                activeIndex = activeIndex,
-                progress = progress,
-                onNavigate = ::navigate,
-                modifier = Modifier.tracked(track = track),
-            )
         }
+        // Personalização: the page dots sit centred at the hero's foot.
+        TrendingPager(
+            count = items.size,
+            activeIndex = activeIndex,
+            progress = progress,
+            onNavigate = ::navigate,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.mpx).tracked(track = track),
+        )
     }
 }
 
@@ -975,7 +978,6 @@ private fun TrendingPager(count: Int, activeIndex: Int, progress: Float, onNavig
         radius = 14.mpx,
         focusStyle = StageFocus.FX,
         modifier = modifier
-            .offset(x = (-14).mpx)
             .onPreviewKeyEvent { e ->
                 if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 val delta = when (e.key) {
@@ -986,22 +988,31 @@ private fun TrendingPager(count: Int, activeIndex: Int, progress: Float, onNavig
                 trendingPagerTarget(activeIndex, count, delta)?.let { onNavigate(it); true } ?: false
             },
     ) { focused ->
-        Row(Modifier.padding(horizontal = 14.mpx, vertical = 12.mpx), horizontalArrangement = Arrangement.spacedBy(8.mpx)) {
+        // Personalização: page dots in a dark capsule; the current page is a longer pill that fills
+        // over the 10 s.
+        Row(
+            Modifier
+                .background(Color.Black.copy(alpha = if (focused) 0f else 0.32f), RoundedCornerShape(14.mpx))
+                .padding(horizontal = 12.mpx, vertical = 9.mpx),
+            horizontalArrangement = Arrangement.spacedBy(8.mpx),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             repeat(count) { i ->
-                val fill = when {
-                    i < activeIndex -> 1f
-                    i == activeIndex -> progress
-                    else -> 0f
-                }
-                Box(
-                    Modifier
-                        .size(if (i == activeIndex) 70.mpx else 34.mpx, 5.mpx)
-                        .clip(RoundedCornerShape(3.mpx))
-                        .background(StageColors.Ink.copy(alpha = if (focused) 0.28f else 0.18f)),
-                ) {
+                if (i == activeIndex) {
                     Box(
-                        Modifier.fillMaxWidth(fill).height(5.mpx)
-                            .background(if (focused && i == activeIndex) a.focus else a.accent),
+                        Modifier
+                            .size(30.mpx, 10.mpx)
+                            .clip(RoundedCornerShape(5.mpx))
+                            .background(Color.White.copy(alpha = 0.4f)),
+                    ) {
+                        Box(Modifier.fillMaxWidth(progress).height(10.mpx).background(if (focused) a.focus else Color.White))
+                    }
+                } else {
+                    Box(
+                        Modifier
+                            .size(if (i < activeIndex) 10.mpx else 8.mpx)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = if (i < activeIndex) 0.75f else 0.45f)),
                     )
                 }
             }
@@ -1268,6 +1279,9 @@ private fun TrendingPosterRow(
                     width = 196.mpx,
                     height = 294.mpx,
                     rating = item.snapshot.rating?.let(::ratingText),
+                    // Personalização: a chart — the position large in the corner, the title on the art.
+                    rank = (index + 1).takeIf { it <= 10 },
+                    titleOnArt = true,
                     modifier = Modifier
                         .then(if (index == 0 && firstItemFocusRequester != null) Modifier.focusRequester(firstItemFocusRequester) else Modifier)
                         .tracked(track = track)
