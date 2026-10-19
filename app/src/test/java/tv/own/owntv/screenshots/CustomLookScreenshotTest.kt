@@ -116,6 +116,95 @@ class CustomLookScreenshotTest {
         rule.setContent { Screen { CategoriesMock(sheet = true) } }
         save("06_tv_ao_vivo_categorias")
     }
+
+    @Test
+    fun detalhes_filme() {
+        rule.setContent { Screen { DetailsMock() } }
+        rule.onNodeWithTag(PLAY).requestFocus()
+        save("07_detalhes_filme")
+    }
+
+    @Test
+    fun detalhes_serie_episodios() {
+        rule.setContent { Screen { EpisodesMock() } }
+        rule.onNodeWithTag(FIRST_EPISODE).requestFocus()
+        save("08_serie_episodios")
+    }
+}
+
+private const val FIRST_EPISODE = "ep0"
+
+/** A title's page as the films / series screens draw it: the backdrop, VodHero, the action buttons. */
+@Composable
+private fun DetailsMock() {
+    Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF7FB3D5), Color(0xFF2E7D32), Color(0xFF1B3A1B)))))
+        Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to Color(0xFF1C1C1E), 0.6f to Color.Transparent)))
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.5f to Color.Transparent, 1f to Color(0xFF1C1C1E))))
+        Column(Modifier.padding(start = 140.mpx, top = 260.mpx)) {
+            tv.own.owntv.features.shell.components.VodHero(
+                tv.own.owntv.features.shell.components.VodTitleInfo(
+                    title = "Ted Lasso",
+                    logoUrl = null,
+                    backdropUrl = null,
+                    posterUrl = null,
+                    year = 2020,
+                    genres = listOf("Comédia", "Esportes"),
+                    runtimeSecs = 1800,
+                    rating = 8.8,
+                    tags = listOf("4K", "HDR"),
+                    plot = "Para conseguir uma exposição maior, Rebecca coloca o jornalista cínico Trent Crimm para passar um dia com Ted. Ted e Roy se aventuram pela comunidade.",
+                    cast = emptyList(),
+                ),
+                Modifier.width(1100.mpx),
+            )
+            Spacer(Modifier.height(36.mpx))
+            Row(horizontalArrangement = Arrangement.spacedBy(14.mpx), verticalAlignment = Alignment.CenterVertically) {
+                StageButton("Reproduzir episódio", {}, icon = OwnTVIcon.PLAY, iconFilled = true, modifier = Modifier.testTag(PLAY))
+                StageButton("Trailer", {}, icon = OwnTVIcon.PLAY_CIRCLE)
+                StageButton(null, {}, icon = OwnTVIcon.CHECK, round = true)
+                StageButton(null, {}, icon = OwnTVIcon.FAVORITE, round = true)
+                StageButton(null, {}, icon = OwnTVIcon.INFO, round = true)
+            }
+        }
+    }
+}
+
+/** The series page's seasons (StageTab) and episodes (StageEpisode). */
+@Composable
+private fun EpisodesMock() {
+    val episodes = listOf(
+        "Trent Crimm: The Independent" to (0xFF5D4037 to 0xFF1565C0),
+        "Pelas Crianças" to (0xFF6A1B9A to 0xFFEF6C00),
+        "Marca de Biquíni" to (0xFF2E7D32 to 0xFF90A4AE),
+        "Dois Ases" to (0xFFC62828 to 0xFF37474F),
+        "Make Rebecca Great Again" to (0xFF283593 to 0xFF00838F),
+    )
+    Column(Modifier.fillMaxSize().padding(start = 140.mpx, top = 80.mpx)) {
+        tv.own.owntv.features.shell.components.VodHeroTitle("Ted Lasso")
+        Spacer(Modifier.height(30.mpx))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.mpx)) {
+            listOf("Temporada 1" to "10", "Temporada 2" to "12", "Temporada 3" to "12", "Temporada 4" to "10").forEachIndexed { i, (l, c) ->
+                tv.own.owntv.ui.stage.StageTab(l, c, selected = i == 0, onClick = {})
+            }
+        }
+        Spacer(Modifier.height(30.mpx))
+        Row(horizontalArrangement = Arrangement.spacedBy(24.mpx)) {
+            episodes.forEachIndexed { i, (title, c) ->
+                tv.own.owntv.ui.stage.StageEpisode(
+                    title = title,
+                    line = "${14 + i * 7}/08/2020 · ${30 + i} min",
+                    number = "${i + 3}",
+                    watched = i == 1,
+                    progress = if (i == 0) 0.4f else null,
+                    onClick = {},
+                    width = 384.mpx,
+                    height = 216.mpx,
+                    modifier = if (i == 0) Modifier.testTag(FIRST_EPISODE) else Modifier,
+                ) { Box(art(c.first, c.second)) }
+            }
+        }
+    }
 }
 
 private val sampleCategories = listOf(
